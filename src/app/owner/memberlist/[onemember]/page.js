@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from 'react';
 import { getDataFromSessionStorage } from "@/_Components/getownerdata";
-import styles from '@/_StyleSheet/onemember.module.css';
+import styles from '@/_StyleSheet/oneMember.module.css';
 
 export default function OneMemberPage({ params }) {
   const [member, setMember] = useState(null);
