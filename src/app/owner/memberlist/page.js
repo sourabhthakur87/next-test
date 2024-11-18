@@ -6,16 +6,25 @@ import styles from '@/_StyleSheet/memberlist.module.css'; // Ensure this path is
 
 export default function MembersList() {
     const [memberData, setMemberData] = useState([]);
-    const ownerData = JSON.parse(sessionStorage.getItem("item"));
-    const id = ownerData?._id;
-
+    const [ownerData, setOwnerData] = useState(null); // State to store ownerData safely on the client
     const [mySearch, setMySearch] = useState("");
     const [showUpcoming, setShowUpcoming] = useState(false);
     const [memberNumber, setMemberNumber] = useState(10);
 
+    // Fetch `ownerData` from sessionStorage on the client
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const storedOwnerData = sessionStorage.getItem("item");
+            if (storedOwnerData) {
+                setOwnerData(JSON.parse(storedOwnerData));
+            }
+        }
+    }, []);
+
     const getMemberList = async () => {
+        if (!ownerData?._id) return; // Only fetch if `ownerData` is available
         try {
-            let res = await fetch(`http://localhost:3000/api/ownerroute/addmember/${id}`);
+            let res = await fetch(`http://localhost:3000/api/ownerroute/addmember/${ownerData._id}`);
             res = await res.json();
             if (res.success) {
                 setMemberData(res.result);
@@ -34,25 +43,26 @@ export default function MembersList() {
             try {
                 let res = await fetch(`http://localhost:3000/api/ownerroute/addmember/${id}`, {
                     method: "delete"
-                })
+                });
 
                 res = await res.json();
-                console.log(res);
                 if (res.success) {
-                    alert(res.result)
-                }
-                else {
-                    alert(res.result)
+                    alert(res.result);
+                    getMemberList(); // Refresh the member list
+                } else {
+                    alert(res.result);
                 }
             } catch (error) {
-                console.log(error);
+                console.error("Error deleting member:", error);
             }
         }
-    }
+    };
 
     useEffect(() => {
-        if (id) getMemberList();
-    }, [memberData]);
+        if (ownerData?._id) {
+            getMemberList();
+        }
+    }, [ownerData]);
 
     return (
         <div className={styles.container}>
@@ -121,7 +131,7 @@ export default function MembersList() {
                                         <td>{registrationDate} <br /> TO <br /> {feeDurationDate}</td>
                                         <td>{remainingDays}</td>
                                         <td className={styles.updateButton}>Update Fee</td>
-                                        <td ><button className={styles.deleteButton} onClick={() => deleteMember(curr._id)}>Delete</button></td>
+                                        <td><button className={styles.deleteButton} onClick={() => deleteMember(curr._id)}>Delete</button></td>
                                         <td><Link href={`/owner/memberlist/${curr._id}`} className={styles.detailsLink}>All Info</Link></td>
                                     </tr>
                                 );
